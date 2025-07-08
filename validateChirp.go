@@ -18,10 +18,16 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(params.Body) > 140 {
+	maxChirpLength := 140
+	if len(params.Body) > maxChirpLength {
 		respondWithError(w, 400, "Chirp is too long")
 	} else {
-		cleanedBody := replaceBadWords(params.Body)
+		badWords := map[string]struct{}{
+			"kerfuffle": {},
+			"sharbert":  {},
+			"fornax":    {},
+		}
+		cleanedBody := replaceBadWords(params.Body, badWords)
 
 		validResp := struct {
 			CleanedBody string `json:"cleaned_body"`
@@ -32,14 +38,12 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func replaceBadWords(s string) string {
-	badWords := []string{"kerfuffle", "sharbert", "fornax"}
+func replaceBadWords(s string, badWords map[string]struct{}) string {
 	splited := strings.Fields(s)
 	for i, w := range splited {
-		for _, bw := range badWords {
-			if strings.ToLower(w) == bw {
-				splited[i] = "****"
-			}
+		loweredWord := strings.ToLower(w)
+		if _, ok := badWords[loweredWord]; ok {
+			splited[i] = "****"
 		}
 	}
 	return strings.Join(splited, " ")
