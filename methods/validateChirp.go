@@ -1,12 +1,14 @@
-package main
+package methods
 
 import (
 	"encoding/json"
 	"net/http"
 	"strings"
+
+	"github.com/levon-dalakyan/chirpy-server/helpers"
 )
 
-func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
+func HandlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body string `json:"body"`
 	}
@@ -14,13 +16,13 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 	params := parameters{}
 	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
-		respondWithError(w, 400, "Invalid request payload")
+		helpers.RespondWithError(w, 401, "Invalid request payload")
 		return
 	}
 
 	maxChirpLength := 140
 	if len(params.Body) > maxChirpLength {
-		respondWithError(w, 400, "Chirp is too long")
+		helpers.RespondWithError(w, 400, "Chirp is too long")
 	} else {
 		badWords := map[string]struct{}{
 			"kerfuffle": {},
@@ -34,7 +36,7 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 		}{
 			CleanedBody: cleanedBody,
 		}
-		respondWithJSON(w, 200, validResp)
+		helpers.RespondWithJSON(w, 200, validResp)
 	}
 }
 
