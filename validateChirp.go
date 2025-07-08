@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
@@ -10,37 +11,36 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 		Body string `json:"body"`
 	}
 
-	type errorResp struct {
-		Error string `json:"error"`
-	}
-
 	params := parameters{}
 	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
-		errResp := errorResp{
-			Error: "Invalid request payload",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(400)
-		json.NewEncoder(w).Encode(errResp)
+		respondWithError(w, 400, "Invalid request payload")
 		return
 	}
 
 	if len(params.Body) > 140 {
-		errorResp := errorResp{
-			Error: "Chirp is too long",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(400)
-		json.NewEncoder(w).Encode(errorResp)
+		respondWithError(w, 400, "Chirp is too long")
 	} else {
+		cleanedBody := replaceBadWords(params.Body)
+
 		validResp := struct {
-			Valid bool `json:"valid"`
+			CleanedBody string `json:"cleaned_body"`
 		}{
-			Valid: true,
+			CleanedBody: cleanedBody,
 		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
-		json.NewEncoder(w).Encode(validResp)
+		respondWithJSON(w, 200, validResp)
 	}
+}
+
+func replaceBadWords(s string) string {
+	badWords := []string{"kerfuffle", "sharbert", "fornax"}
+	splited := strings.Fields(s)
+	for i, w := range splited {
+		for _, bw := range badWords {
+			if strings.ToLower(w) == bw {
+				splited[i] = "****"
+			}
+		}
+	}
+	return strings.Join(splited, " ")
 }
