@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -12,7 +14,15 @@ import (
 	"github.com/levon-dalakyan/chirpy-server/internal/helpers"
 )
 
-func (cfg *ApiConfig) HandlerChirps(w http.ResponseWriter, r *http.Request) {
+type ChirpResp struct {
+	ID        string `json:"id"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	Body      string `json:"body"`
+	UserId    string `json:"user_id"`
+}
+
+func (cfg *ApiConfig) HandlerChirpsCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body   string `json:"body"`
 		UserId string `json:"user_id"`
@@ -45,20 +55,12 @@ func (cfg *ApiConfig) HandlerChirps(w http.ResponseWriter, r *http.Request) {
 			Body:   cleanedBody,
 			UserID: userId,
 		})
-
-		chirpResp := struct {
-			ID        string `json:"id"`
-			CreatedAt string `json:"created_at"`
-			UpdatedAt string `json:"updated_at"`
-			Body      string `json:"body"`
-			UserId    string `json:"user_id"`
-		}{
-			ID:        chirp.ID.String(),
-			CreatedAt: chirp.CreatedAt.Format(time.RFC3339),
-			UpdatedAt: chirp.UpdatedAt.Format(time.RFC3339),
-			Body:      chirp.Body,
-			UserId:    chirp.UserID.String(),
+		if err != nil {
+			helpers.RespondWithError(w, 500, fmt.Sprintf("Failed to create chirp: %v", err))
 		}
+
+		log.Println(chirp)
+		chirpResp := formatChirpRespToJSON(chirp)
 
 		helpers.RespondWithJSON(w, 201, chirpResp)
 	}
@@ -73,4 +75,16 @@ func replaceBadWords(s string, badWords map[string]struct{}) string {
 		}
 	}
 	return strings.Join(splited, " ")
+}
+
+func formatChirpRespToJSON(chirp database.Chirp) ChirpResp {
+	chirpResp := ChirpResp{
+		ID:        chirp.ID.String(),
+		CreatedAt: chirp.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: chirp.UpdatedAt.Format(time.RFC3339),
+		Body:      chirp.Body,
+		UserId:    chirp.UserID.String(),
+	}
+
+	return chirpResp
 }
