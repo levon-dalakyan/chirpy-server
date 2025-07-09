@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -59,7 +58,6 @@ func (cfg *ApiConfig) HandlerChirpsCreate(w http.ResponseWriter, r *http.Request
 			helpers.RespondWithError(w, 500, fmt.Sprintf("Failed to create chirp: %v", err))
 		}
 
-		log.Println(chirp)
 		chirpResp := formatChirpRespToJSON(chirp)
 
 		helpers.RespondWithJSON(w, 201, chirpResp)
