@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -16,32 +15,23 @@ func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (str
 		Subject:   userID.String(),
 	})
 
-	jwtToken, err := token.SignedString([]byte(tokenSecret))
-	if err != nil {
-		return "", err
-	}
-
-	return jwtToken, nil
+	return token.SignedString([]byte(tokenSecret))
 }
 
 func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("Unexpected signing mehtod")
-
-		}
+	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (any, error) {
 		return []byte(tokenSecret), nil
 	})
 	if err != nil {
 		return uuid.Nil, err
 	}
 
-	claims, ok := token.Claims.(*jwt.RegisteredClaims)
-	if !ok || !token.Valid {
+	userIdString, err := token.Claims.GetSubject()
+	if err != nil {
 		return uuid.Nil, err
 	}
 
-	userID, err := uuid.Parse(claims.Subject)
+	userID, err := uuid.Parse(userIdString)
 	if err != nil {
 		return uuid.Nil, err
 	}
