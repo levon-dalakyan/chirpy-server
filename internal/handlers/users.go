@@ -7,22 +7,29 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/levon-dalakyan/chirpy-server/internal/auth"
+	"github.com/levon-dalakyan/chirpy-server/internal/database"
 	"github.com/levon-dalakyan/chirpy-server/internal/helpers"
 )
 
 func (cfg *ApiConfig) HandlerUsers(w http.ResponseWriter, req *http.Request) {
-	type parameters struct {
-		Email string `json:"email"`
-	}
-
-	params := parameters{}
+	params := loginData{}
 	err := json.NewDecoder(req.Body).Decode(&params)
 	if err != nil {
-		helpers.RespondWithError(w, 401, "Invalid request payload")
+		helpers.RespondWithError(w, 400, "Invalid request payload")
 		return
 	}
 
-	user, err := cfg.DBQueries.CreateUser(context.Background(), params.Email)
+	hashedPass, err := auth.HashPassword(params.Password)
+	if err != nil {
+		helpers.RespondWithError(w, 400, "Invalid request payload")
+		return
+	}
+
+	user, err := cfg.DBQueries.CreateUser(context.Background(), database.CreateUserParams{
+		Email:          params.Email,
+		HashedPassword: hashedPass,
+	})
 	if err != nil {
 		errStr := fmt.Sprintf("Failed to create user: %v", err)
 		helpers.RespondWithError(w, 500, errStr)
