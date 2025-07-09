@@ -9,7 +9,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/levon-dalakyan/chirpy-server/internal/database"
-	"github.com/levon-dalakyan/chirpy-server/methods"
+	"github.com/levon-dalakyan/chirpy-server/internal/handlers"
 	_ "github.com/lib/pq"
 )
 
@@ -26,7 +26,7 @@ func main() {
 	filepathRoot := "."
 	port := "8080"
 
-	apiCfg := methods.ApiConfig{
+	apiCfg := handlers.ApiConfig{
 		FileserverHits: atomic.Int32{},
 		DBQueries:      dbQueries,
 	}
@@ -36,8 +36,9 @@ func main() {
 		http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))),
 	))
 
-	mux.HandleFunc("GET /api/healthz", methods.HandlerReadiness)
-	mux.HandleFunc("POST /api/validate_chirp", methods.HandlerValidateChirp)
+	mux.HandleFunc("GET /api/healthz", handlers.HandlerReadiness)
+	mux.HandleFunc("POST /api/validate_chirp", handlers.HandlerValidateChirp)
+	mux.HandleFunc("POST /api/users", apiCfg.HandlerUsers)
 
 	mux.HandleFunc("GET /admin/metrics", apiCfg.HandlerMetrics)
 	mux.HandleFunc("POST /admin/reset", apiCfg.HandlerReset)

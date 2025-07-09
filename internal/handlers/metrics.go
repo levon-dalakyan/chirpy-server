@@ -1,4 +1,4 @@
-package methods
+package handlers
 
 import (
 	"fmt"
@@ -29,10 +29,4 @@ func (cfg *ApiConfig) HandlerMetrics(w http.ResponseWriter, req *http.Request) {
     <p>Chirpy has been visited %d times!</p>
   </body>
 </html>`, cfg.FileserverHits.Load())
-}
-
-func (cfg *ApiConfig) HandlerReset(w http.ResponseWriter, req *http.Request) {
-	cfg.FileserverHits.Store(0)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Hits reset to 0"))
 }

@@ -1,11 +1,11 @@
-package methods
+package handlers
 
 import (
 	"encoding/json"
 	"net/http"
 	"strings"
 
-	"github.com/levon-dalakyan/chirpy-server/helpers"
+	"github.com/levon-dalakyan/chirpy-server/internal/helpers"
 )
 
 func HandlerValidateChirp(w http.ResponseWriter, r *http.Request) {
