@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"net/http"
 	"sync/atomic"
+
+	"github.com/levon-dalakyan/chirpy-server/internal/database"
 )
 
 type ApiConfig struct {
 	FileserverHits atomic.Int32
+	DBQueries      *database.Queries
 }
 
 func (cfg *ApiConfig) MiddlewareMetricsInc(next http.Handler) http.Handler {
