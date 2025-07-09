@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/levon-dalakyan/chirpy-server/internal/auth"
+	"github.com/levon-dalakyan/chirpy-server/internal/database"
 	"github.com/levon-dalakyan/chirpy-server/internal/helpers"
 )
 
@@ -16,12 +17,7 @@ type loginData struct {
 }
 
 func (cfg *ApiConfig) HandlerLogin(w http.ResponseWriter, req *http.Request) {
-	type loginDataParams struct {
-		loginData
-		ExpiresInSeconds int `json:"expires_in_seconds"`
-	}
-
-	var params loginDataParams
+	var params loginData
 	err := json.NewDecoder(req.Body).Decode(&params)
 	if err != nil {
 		helpers.RespondWithError(w, 400, "Invalid payload data")
@@ -38,30 +34,35 @@ func (cfg *ApiConfig) HandlerLogin(w http.ResponseWriter, req *http.Request) {
 		responseValidationError(w)
 	}
 
-	jwtExpiresIn := time.Hour
-	if params.ExpiresInSeconds > 0 {
-		if time.Duration(params.ExpiresInSeconds)*time.Second < time.Duration(time.Hour.Seconds()) {
-			jwtExpiresIn = time.Duration(params.ExpiresInSeconds)
-		}
+	jwtToken, err := auth.MakeJWT(user.ID, cfg.JWTSecret, time.Hour)
+	if err != nil {
+		helpers.RespondWithError(w, 400, "Failed to generate jwt")
 	}
 
-	jwtToken, err := auth.MakeJWT(user.ID, cfg.JWTSecret, jwtExpiresIn)
+	refreshToken, err := auth.MakeRefreshToken()
 	if err != nil {
-		helpers.RespondWithError(w, 400, "Failed to login")
+		helpers.RespondWithError(w, 500, "Failed to generate refresh token")
 	}
+
+	cfg.DBQueries.CreateRefreshToken(context.Background(), database.CreateRefreshTokenParams{
+		Token:  refreshToken,
+		UserID: user.ID,
+	})
 
 	userResp := struct {
-		ID        string `json:"id"`
-		CreatedAt string `json:"created_at"`
-		UpdatedAt string `json:"updated_at"`
-		Email     string `json:"email"`
-		Token     string `json:"token"`
+		ID           string `json:"id"`
+		CreatedAt    string `json:"created_at"`
+		UpdatedAt    string `json:"updated_at"`
+		Email        string `json:"email"`
+		Token        string `json:"token"`
+		RefreshToken string `json:"refresh_token"`
 	}{
-		ID:        user.ID.String(),
-		CreatedAt: user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
-		Email:     user.Email,
-		Token:     jwtToken,
+		ID:           user.ID.String(),
+		CreatedAt:    user.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:    user.UpdatedAt.Format(time.RFC3339),
+		Email:        user.Email,
+		Token:        jwtToken,
+		RefreshToken: refreshToken,
 	}
 	helpers.RespondWithJSON(w, 200, userResp)
 }

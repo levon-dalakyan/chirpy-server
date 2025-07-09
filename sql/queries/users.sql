@@ -15,3 +15,17 @@ FROM
 WHERE
     email = $1;
 
+-- name: GetUserFromRefreshToken :one
+SELECT
+    *
+FROM
+    users
+WHERE
+    users.id = (
+        SELECT
+            refresh_tokens.user_id
+        FROM
+            refresh_tokens
+        WHERE
+            refresh_tokens.token = $1);
+
