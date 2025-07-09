@@ -16,6 +16,7 @@ import (
 func main() {
 	godotenv.Load()
 
+	platform := os.Getenv("PLATFORM")
 	dbURL := os.Getenv("DB_URL")
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -29,6 +30,7 @@ func main() {
 	apiCfg := handlers.ApiConfig{
 		FileserverHits: atomic.Int32{},
 		DBQueries:      dbQueries,
+		Platform:       platform,
 	}
 
 	mux := http.NewServeMux()
