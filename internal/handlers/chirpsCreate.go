@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/levon-dalakyan/chirpy-server/internal/auth"
 	"github.com/levon-dalakyan/chirpy-server/internal/database"
 	"github.com/levon-dalakyan/chirpy-server/internal/helpers"
 )
@@ -22,13 +22,23 @@ type ChirpResp struct {
 }
 
 func (cfg *ApiConfig) HandlerChirpsCreate(w http.ResponseWriter, r *http.Request) {
+	jwtToken, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		helpers.RespondWithError(w, 401, err.Error())
+		return
+	}
+	userId, err := auth.ValidateJWT(jwtToken, cfg.JWTSecret)
+	if err != nil {
+		helpers.RespondWithError(w, 401, fmt.Sprintf("Unauthorized: %s", err))
+		return
+	}
+
 	type parameters struct {
-		Body   string `json:"body"`
-		UserId string `json:"user_id"`
+		Body string `json:"body"`
 	}
 
 	params := parameters{}
-	err := json.NewDecoder(r.Body).Decode(&params)
+	err = json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
 		helpers.RespondWithError(w, 401, "Invalid request payload")
 		return
@@ -44,11 +54,6 @@ func (cfg *ApiConfig) HandlerChirpsCreate(w http.ResponseWriter, r *http.Request
 			"fornax":    {},
 		}
 		cleanedBody := replaceBadWords(params.Body, badWords)
-
-		userId, err := uuid.Parse(params.UserId)
-		if err != nil {
-			helpers.RespondWithError(w, 401, "Invalid user id")
-		}
 
 		chirp, err := cfg.DBQueries.CreateChirp(context.Background(), database.CreateChirpParams{
 			Body:   cleanedBody,

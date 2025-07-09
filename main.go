@@ -17,6 +17,7 @@ func main() {
 	godotenv.Load()
 
 	platform := os.Getenv("PLATFORM")
+	jwtSecret := os.Getenv("JWT_SECRET")
 	dbURL := os.Getenv("DB_URL")
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -31,6 +32,7 @@ func main() {
 		FileserverHits: atomic.Int32{},
 		DBQueries:      dbQueries,
 		Platform:       platform,
+		JWTSecret:      jwtSecret,
 	}
 
 	mux := http.NewServeMux()
