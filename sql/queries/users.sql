@@ -29,3 +29,15 @@ WHERE
         WHERE
             refresh_tokens.token = $1);
 
+-- name: UpdateUser :one
+UPDATE
+    users
+SET
+    email = $2,
+    hashed_password = $3,
+    updated_at = timezone('UTC', now())
+WHERE
+    id = $1
+RETURNING
+    email;
+

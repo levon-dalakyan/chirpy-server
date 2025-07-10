@@ -40,7 +40,7 @@ func (cfg *ApiConfig) HandlerChirpsCreate(w http.ResponseWriter, r *http.Request
 	params := parameters{}
 	err = json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
-		helpers.RespondWithError(w, 401, "Invalid request payload")
+		helpers.RespondWithError(w, 400, "Invalid request payload")
 		return
 	}
 
