@@ -6,10 +6,22 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/levon-dalakyan/chirpy-server/internal/auth"
 	"github.com/levon-dalakyan/chirpy-server/internal/helpers"
 )
 
 func (cfg *ApiConfig) HandlerPolkaWebhook(w http.ResponseWriter, r *http.Request) {
+	apiKey, err := auth.GetApiKey(r.Header)
+	if err != nil {
+		helpers.RespondWithError(w, 401, err.Error())
+		return
+	}
+
+	if apiKey != cfg.PolkaKey {
+		helpers.RespondWithError(w, 401, "wrong api key")
+		return
+	}
+
 	type parameters struct {
 		Event string `json:"event"`
 		Data  struct {
@@ -17,7 +29,7 @@ func (cfg *ApiConfig) HandlerPolkaWebhook(w http.ResponseWriter, r *http.Request
 		} `json:"data"`
 	}
 	var params parameters
-	err := json.NewDecoder(r.Body).Decode(&params)
+	err = json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
 		helpers.RespondWithError(w, 400, "Invalid payload")
 		return
