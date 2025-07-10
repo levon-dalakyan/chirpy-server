@@ -7,7 +7,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/levon-dalakyan/chirpy-server/internal/auth"
-	"github.com/levon-dalakyan/chirpy-server/internal/database"
 	"github.com/levon-dalakyan/chirpy-server/internal/helpers"
 )
 
@@ -43,10 +42,7 @@ func (cfg *ApiConfig) HandlerChirpsDeleteOne(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = cfg.DBQueries.DeleteChirp(context.Background(), database.DeleteChirpParams{
-		ID:     chirpID,
-		UserID: userID,
-	})
+	err = cfg.DBQueries.DeleteChirp(context.Background(), chirp.ID)
 	if err != nil {
 		helpers.RespondWithError(w, 500, "Unable to delete chirp")
 		return

@@ -54,6 +54,7 @@ func (cfg *ApiConfig) HandlerLogin(w http.ResponseWriter, req *http.Request) {
 		CreatedAt    string `json:"created_at"`
 		UpdatedAt    string `json:"updated_at"`
 		Email        string `json:"email"`
+		IsChirpyRed  bool   `json:"is_chirpy_red"`
 		Token        string `json:"token"`
 		RefreshToken string `json:"refresh_token"`
 	}{
@@ -61,6 +62,7 @@ func (cfg *ApiConfig) HandlerLogin(w http.ResponseWriter, req *http.Request) {
 		CreatedAt:    user.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:    user.UpdatedAt.Format(time.RFC3339),
 		Email:        user.Email,
+		IsChirpyRed:  user.IsChirpyRed,
 		Token:        jwtToken,
 		RefreshToken: refreshToken,
 	}

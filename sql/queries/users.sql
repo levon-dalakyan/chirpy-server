@@ -15,6 +15,14 @@ FROM
 WHERE
     email = $1;
 
+-- name: GetUser :one
+SELECT
+    *
+FROM
+    users
+WHERE
+    id = $1;
+
 -- name: GetUserFromRefreshToken :one
 SELECT
     *
@@ -39,5 +47,14 @@ SET
 WHERE
     id = $1
 RETURNING
-    email;
+    email,
+    is_chirpy_red;
+
+-- name: UpgradeUserToChirpyRed :exec
+UPDATE
+    users
+SET
+    is_chirpy_red = TRUE
+WHERE
+    id = $1;
 

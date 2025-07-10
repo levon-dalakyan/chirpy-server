@@ -36,15 +36,17 @@ func (cfg *ApiConfig) HandlerUsers(w http.ResponseWriter, req *http.Request) {
 	}
 
 	userResp := struct {
-		Id        string `json:"id"`
-		CreatedAt string `json:"created_at"`
-		UpdatedAt string `json:"updated_at"`
-		Email     string `json:"email"`
+		Id          string `json:"id"`
+		CreatedAt   string `json:"created_at"`
+		UpdatedAt   string `json:"updated_at"`
+		Email       string `json:"email"`
+		IsChirpyRed bool   `json:"is_chirpy_red"`
 	}{
-		Id:        user.ID.String(),
-		CreatedAt: user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
-		Email:     user.Email,
+		Id:          user.ID.String(),
+		CreatedAt:   user.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   user.UpdatedAt.Format(time.RFC3339),
+		Email:       user.Email,
+		IsChirpyRed: user.IsChirpyRed,
 	}
 	helpers.RespondWithJSON(w, 201, userResp)
 }

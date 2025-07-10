@@ -40,7 +40,7 @@ func (cfg *ApiConfig) HandlerUsersUpdate(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	userEmail, err := cfg.DBQueries.UpdateUser(context.Background(), database.UpdateUserParams{
+	user, err := cfg.DBQueries.UpdateUser(context.Background(), database.UpdateUserParams{
 		ID:             userID,
 		Email:          params.Email,
 		HashedPassword: newHashedPass,
@@ -51,9 +51,11 @@ func (cfg *ApiConfig) HandlerUsersUpdate(w http.ResponseWriter, r *http.Request)
 	}
 
 	userResp := struct {
-		Email string `json:"email"`
+		Email       string `json:"email"`
+		IsChirpyRed bool   `json:"is_chirpy_red"`
 	}{
-		Email: userEmail,
+		Email:       user.Email,
+		IsChirpyRed: user.IsChirpyRed,
 	}
 
 	helpers.RespondWithJSON(w, 200, userResp)
